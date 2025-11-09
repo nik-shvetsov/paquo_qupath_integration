@@ -9,7 +9,7 @@ docker run --rm --gpus all -e DISPLAY=$DISPLAY \
 -v /tmp/.X11-unix:/tmp/.X11-unix \
 -v /path/to/slides:/workspace/data \
 -v /path/to/qupath_projects:/workspace/projects \
-nikshv/qupath:v0.5.1-mod
+nikshv/qupath:v0.5.1-mod-v2
 ```
 ### Manual approach
 
@@ -53,3 +53,7 @@ All regions in the project will be tagged for annotation.
 4. Press 'Run' button
 5. If it successfully finished, close Script Editor and press (File -> Reload data) in main QuPath window.
 6. Inspect results
+
+### 
+- Don't forget to save annotations before running script and reload data in QuPath to see produced detections.
+- QuPath have autocropping feature enabled by default as well as the script. If you want to validate detections using external viewer or script, consider setting 'use_autocrop' to 'False' in script.groovy or in run.py if you use it directly.

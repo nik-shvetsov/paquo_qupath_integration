@@ -23,6 +23,8 @@ mkdir -p /workspace/paquo/models /workspace/paquo/scripts workspace/projects /wo
 RUN curl -fsSL -o /tmp/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
 chmod +x /tmp/miniconda.sh && \
 /tmp/miniconda.sh -b -p /opt/conda && \
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main && \
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r && \
 conda install -c conda-forge -y python=${PYTHON_VERSION} pip openslide pyvips && \
 pip install torch==2.4.1 torchvision==0.19.1 --index-url https://download.pytorch.org/whl/cu124 && \
 pip install scipy polars numba shapely openslide-python scikit-image opencv-python paquo && \

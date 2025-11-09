@@ -63,16 +63,26 @@ def add_cell_detections(project, qp_annotations):
                         cell.update_path_class(qp.path_classes[cell_type - 1])
 
 
-def infer_cell_detections(project, model, patch_size, batch_size):
+def infer_cell_detections(project, model, patch_size, batch_size, autocrop=True):
     with QuPathProject(project, mode="a") as qp:
         qp_annotations = {}
         for image in qp.images:
             qp_annotations[image.image_name] = {}
-            qp_annotations[image.image_name]["vips_slide"] = pyvips.Image.new_from_file(
-                Path(image.uri.replace("file:", "")), level=0
-            ).extract_band(0, n=3)
+            qp_annotations[image.image_name]["vips_slide"] = (
+                pyvips.Image.new_from_file(
+                    Path(image.uri.replace("file:", "")), level=0, autocrop=autocrop
+                ).extract_band(0, n=3)
+            )
             qp_annotations[image.image_name]["global_polygons"] = []
+            print(
+                f"Processing image: {image.image_name}, size: {qp_annotations[image.image_name]['vips_slide'].width}x{qp_annotations[image.image_name]['vips_slide'].height}"
+            )
             with image.hierarchy.no_autoflush():
+                if len(image.hierarchy.annotations) == 0:
+                    print(
+                        f"No annotations found for image: {image.image_name}, skipping..."
+                    )
+                    continue
                 for image_global_annotation in image.hierarchy.annotations:
                     print(
                         f"Processing {image.image_name} - Polygon area [{image_global_annotation.roi.area}]"
@@ -309,10 +319,19 @@ if __name__ == "__main__":
     parser.add_argument(
         "--sampling-patch-size",
         type=int,
-        default=384,
+        default=224,
         metavar="S",
         help="Patch size for inference",
     )
+
+    parser.add_argument(
+        "--use_autocrop",
+        type=bool,
+        default=True,
+        metavar="C",
+        help="Auto-crop images when loading with pyvips. In QuPath images are auto-cropped by default",
+    )
+
     args = parser.parse_args()
 
     project = Path(args.project)
@@ -334,7 +353,7 @@ if __name__ == "__main__":
     clear_all_detections(project)
 
     qp_annotations = infer_cell_detections(
-        project, model, args.sampling_patch_size, args.batch_size
+        project, model, args.sampling_patch_size, args.batch_size, autocrop=args.use_autocrop
     )
     add_cell_detections(project, qp_annotations)
     calculate_cell_counts(qp_annotations, class_ids)

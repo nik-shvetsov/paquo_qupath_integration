@@ -3,35 +3,39 @@ import static qupath.lib.gui.scripting.QPEx.*
 
 // --------------------------------------------------------------------------
 // --------------------------------------------------------------------------
-def script_path = '/workspace/paquo/scripts/run.py'
-def model_path = '/workspace/paquo/models/cuda_mobilevit4.pt2'
-def sampling_size = '384'
-// def batch_size = '8'
+// No need to change
+def model_path = "/workspace/paquo/models/cuda_mobilevit4.pt2"
+def script_path = ""
+def use_autocrop = "True" // "True" or "False"
 // --------------------------------------------------------------------------
+// Change these parameters as needed
+def sampling_size = "384" // 224
+def batch_size = "8"
+def use_smoothing_algorithm = "True" // "True" or "False"
+// def stride_ratio = "0.5"
+// def pad_ratio = "0.2"
 // --------------------------------------------------------------------------
+
+if (use_smoothing_algorithm == "True") {
+    script_path = "/workspace/paquo/scripts/smooth/run.py"
+}
+else {
+    script_path = "/workspace/paquo/scripts/by_patch/run.py"
+}
 
 def project = getProject()
-
-// Define the command to run the Python script
-def command = ["python", script_path, "--project", project.path.toString(), "--model", model_path, "--sampling-patch-size", sampling_size]
-
-// Create a ProcessBuilder
+def command = ["python", "-u", script_path, "--project", project.path.toString(), "--model", model_path, "--sampling-patch-size", sampling_size, "--batch-size", batch_size, "--use_autocrop", use_autocrop]
 def processBuilder = new ProcessBuilder(command)
 
-// Redirect the error stream to standard output
 processBuilder.redirectErrorStream(true)
-
-// Start the process
 def process = processBuilder.start()
 
-// Get the output of the process
 def reader = new BufferedReader(new InputStreamReader(process.getInputStream()))
 def line = ""
 while ((line = reader.readLine()) != null) {
     print line + "\n"
 }
 
-// Wait for the process to complete
 def exitCode = process.waitFor()
 if (exitCode == 0)
     print "[OK] Process completed successfully\n"
