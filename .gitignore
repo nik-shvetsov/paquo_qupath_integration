@@ -1,1 +1,3 @@
 *.pt2
+scripts/__pycache__/
+TODO
